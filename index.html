@@ -16,18 +16,20 @@
   <body>
     <header>
       <nav>
-        <a href="/">Главная</a> | <a href="/login">Логин</a> |
-        <a href="/register">Регистрация</a> |
-        <a href="/chat">Список чатов</a> |
-        <a href="/error404">404</a> |
-        <a href="/error500">500</a> |
-
+        <script
+          type="module"
+          src="/src/main.ts"
+        ></script>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/login">Логин</a></li>
+          <li><a href="/register">Регистрация</a></li>
+          <li><a href="/chat">Список чатов</a></li>
+          <li><a href="/error404">404</a></li>
+          <li><a href="/error500">500</a></li>
+        </ul>
       </nav>
     </header>
     <div id="app"></div>
-    <script
-      type="module"
-      src="/src/main.ts"
-    ></script>
   </body>
 </html>
