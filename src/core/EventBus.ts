@@ -1,36 +1,22 @@
-type EventMap = {
-  [key: string]: unknown[];
-};
+type Callback = (...args: unknown[]) => void;
 
-class EventBus<T extends EventMap = EventMap> {
-  private listeners: {
-    [K in keyof T]?: Array<(...args: T[K]) => void>
-  } = {};
+export default class EventBus {
+  private listeners: Record<string, Callback[]> = {};
 
-  on<K extends keyof T>(event: K, callback: (...args: T[K]) => void): void {
+  on(event: string, callback: Callback): void {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
-    this.listeners[event]!.push(callback);
+    this.listeners[event].push(callback);
   }
 
-  off<K extends keyof T>(event: K, callback: (...args: T[K]) => void): void {
-    if (!this.listeners[event]) {
-      return;
-    }
-    this.listeners[event] = this.listeners[event]!.filter(
-      (listener) => listener !== callback,
-    );
+  off(event: string, callback: Callback): void {
+    this.listeners[event] = this.listeners[event]?.filter((cb) => cb !== callback) ?? [];
   }
 
-  emit<K extends keyof T>(event: K, ...args: T[K]): void {
-    if (!this.listeners[event]) {
-      return;
-    }
-    this.listeners[event]!.forEach((listener) => {
-      listener(...args);
+  emit(event: string, ...args: unknown[]): void {
+    (this.listeners[event] ?? []).forEach((cb) => {
+      cb(...args);
     });
   }
 }
-
-export default EventBus;

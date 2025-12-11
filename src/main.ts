@@ -1,7 +1,7 @@
 import { Router } from './router';
 import { renderLoginPage } from './page/login';
 import { renderRegisterPage } from './page/register';
-import { renderChatPage } from './page/chat';
+import { renderChatPage } from './page/chats';
 import { renderMainPage } from './main/main';
 import { renderError404 } from './page/error404';
 import { renderError500 } from './page/error500';

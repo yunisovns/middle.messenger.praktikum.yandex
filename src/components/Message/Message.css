@@ -1,0 +1,11 @@
+.message {
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin: 4px 0;
+  background: #f0f0f0;
+  max-width: 70%;
+}
+.message--self {
+  background: #d0ffd0;
+  margin-left: auto;
+}
