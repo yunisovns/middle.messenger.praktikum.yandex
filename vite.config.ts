@@ -25,7 +25,7 @@ export default defineConfig({
   plugins: [
     stylelint(),
     handlebars({
-      partialDirectory: path.resolve(__dirname, "src/components"),
+      partialDirectory: path.resolve(__dirname, "src/pages"),
     }),
   ],
   assetsInclude: ["**/*.hbs"],

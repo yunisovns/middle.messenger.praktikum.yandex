@@ -1,4 +1,4 @@
-import Input from './Input';
+import Input from './Input.ts';
 
 export default Input;
-export * from './types';
+export * from './types.ts';

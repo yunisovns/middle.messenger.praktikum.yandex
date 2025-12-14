@@ -1,4 +1,5 @@
-import Block from '../../core/Block';
+import Block from '../../core/Block.ts';
+import './Input.css';
 
 const template = `
 <div class="input-wrapper">

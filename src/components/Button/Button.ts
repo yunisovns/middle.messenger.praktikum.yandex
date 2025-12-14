@@ -1,4 +1,5 @@
-import Block from "../../core/Block";
+import Block from '../../core/Block.ts';
+import './Button.scss';
 
 const template =
   '<button class="btn {{className}}" type="{{type}}">{{text}}</button>';
@@ -11,7 +12,7 @@ export default class Button extends Block {
   protected componentDidMount(): void {
     const el = this.element;
     if (!el) return;
-    el.addEventListener("click", (e) => {
+    el.addEventListener('click', (e) => {
       const onClick = this.props.onClick as
         | ((e: MouseEvent) => void)
         | undefined;

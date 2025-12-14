@@ -1,22 +1,22 @@
-type Callback = (...args: unknown[]) => void;
+type Callback<T extends unknown[] = unknown[]> = (...args: T) => void;
 
-export default class EventBus {
-  private listeners: Record<string, Callback[]> = {};
+export default class EventBus<TEvents extends Record<string, unknown[]>> {
+  private listeners: { [K in keyof TEvents]?: Callback<TEvents[K]>[] } = {};
 
-  on(event: string, callback: Callback): void {
+  on<K extends keyof TEvents>(event: K, callback: Callback<TEvents[K]>): void {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
-    this.listeners[event].push(callback);
+    this.listeners[event]?.push(callback);
   }
 
-  off(event: string, callback: Callback): void {
-    this.listeners[event] = this.listeners[event]?.filter((cb) => cb !== callback) ?? [];
+  off<K extends keyof TEvents>(event: K, callback: Callback<TEvents[K]>): void {
+    this.listeners[event] = this.listeners[event]?.filter(
+      (listener) => listener !== callback
+    );
   }
 
-  emit(event: string, ...args: unknown[]): void {
-    (this.listeners[event] ?? []).forEach((cb) => {
-      cb(...args);
-    });
+  emit<K extends keyof TEvents>(event: K, ...args: TEvents[K]): void {
+    this.listeners[event]?.forEach((listener) => listener(...args));
   }
 }

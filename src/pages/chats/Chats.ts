@@ -1,6 +1,6 @@
-import Block from '../../core/Block';
-import { serializeForm } from '../../utils/helpers';
-import { validateMessage } from '../../utils/validator';
+import Block from '../../core/Block.ts';
+import { serializeForm } from '../../utils/helpers.ts';
+import { validateField } from '../../utils/validator.ts'; // Исправленный импорт
 
 const template = `
 <div class="page chats-page">
@@ -57,17 +57,17 @@ export default class Chats extends Block {
     });
 
     input.addEventListener('blur', () => {
-      const res = validateMessage(input.value);
-      input.dataset.error = res.valid ? '' : res.reason;
+      const res = validateField('message', input.value); // Используем validateField
+      input.dataset.error = res.isValid ? '' : res.error; // Используем правильные поля
       this.updateError(input);
     });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const data = serializeForm(form);
-      const res = validateMessage(data.message ?? '');
-      if (!res.valid) {
-        input.dataset.error = res.reason;
+      const res = validateField('message', data.message ?? '');
+      if (!res.isValid) {
+        input.dataset.error = res.error;
         this.updateError(input);
         return;
       }
@@ -77,6 +77,7 @@ export default class Chats extends Block {
       msgEl.textContent = String(data.message);
       messages.appendChild(msgEl);
       form.reset();
+      // eslint-disable-next-line no-console
       console.log('Message sent:', data);
     });
 

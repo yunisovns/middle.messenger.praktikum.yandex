@@ -1,98 +1,79 @@
-export enum METHODS {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  DELETE = 'DELETE',
-}
+import { queryStringify } from '../utils/queryStringify.ts';
 
-function queryStringify(data: Record<string, unknown>): string {
-  const keys = Object.keys(data);
-  if (!keys.length) {
-    return '';
-  }
-  return `?${keys
-    .map(
-      (k) => `${encodeURIComponent(k)}=${encodeURIComponent(
-        String((data as any)[k]),
-      )}`,
-    )
-    .join('&')}`;
-}
+export const METHODS = {
+  GET: 'GET',
+  POST: 'POST',
+  PUT: 'PUT',
+  DELETE: 'DELETE',
+} as const;
+
+type Method = (typeof METHODS)[keyof typeof METHODS];
+
+type RequestOptions = {
+  method?: Method;
+  data?: Record<string, unknown>;
+  headers?: Record<string, string>;
+  timeout?: number;
+};
 
 export default class HTTPTransport {
-  private baseUrl: string;
+  private readonly baseUrl: string;
 
-  constructor(baseUrl = '') {
+  constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
-  public get(
-    url: string,
-    data: Record<string, unknown> = {},
-  ): Promise<XMLHttpRequest> {
-    const query = queryStringify(data);
-    return this.request(`${this.baseUrl}${url}${query}`, {
-      method: METHODS.GET,
-    });
+  get(url: string, options: RequestOptions = {}): Promise<unknown> {
+    const query = options.data ? queryStringify(options.data) : '';
+    return this.request(`${url}${query}`, { ...options, method: METHODS.GET });
   }
 
-  public post(url: string, data: unknown): Promise<XMLHttpRequest> {
-    return this.request(`${this.baseUrl}${url}`, {
-      method: METHODS.POST,
+  post(url: string, options: RequestOptions = {}): Promise<unknown> {
+    return this.request(url, { ...options, method: METHODS.POST });
+  }
+
+  put(url: string, options: RequestOptions = {}): Promise<unknown> {
+    return this.request(url, { ...options, method: METHODS.PUT });
+  }
+
+  delete(url: string, options: RequestOptions = {}): Promise<unknown> {
+    return this.request(url, { ...options, method: METHODS.DELETE });
+  }
+
+  private request(url: string, options: RequestOptions): Promise<unknown> {
+    const {
+      method = METHODS.GET,
       data,
-    });
-  }
+      headers = {},
+      timeout = 5000,
+    } = options;
 
-  public put(url: string, data: unknown): Promise<XMLHttpRequest> {
-    return this.request(`${this.baseUrl}${url}`, { method: METHODS.PUT, data });
-  }
-
-  public delete(url: string, data: unknown): Promise<XMLHttpRequest> {
-    return this.request(`${this.baseUrl}${url}`, {
-      method: METHODS.DELETE,
-      data,
-    });
-  }
-
-  private request(
-    url: string,
-    options: { method: METHODS; data?: unknown; timeout?: number } = {
-      method: METHODS.GET,
-    },
-  ): Promise<XMLHttpRequest> {
-    const { method, data, timeout = 5000 } = options;
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open(method, url, true);
-      xhr.withCredentials = true;
+
+      xhr.open(method, `${this.baseUrl}${url}`);
       xhr.timeout = timeout;
 
-      if (!(data instanceof FormData)) {
-        xhr.setRequestHeader('Content-Type', 'application/json');
-      }
+      Object.entries(headers).forEach(([key, value]) => {
+        xhr.setRequestHeader(key, value);
+      });
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr);
+          resolve(xhr.response);
         } else {
-          reject(xhr);
+          reject(new Error(xhr.statusText));
         }
       };
 
-      xhr.onabort = () => reject(xhr);
-      xhr.onerror = () => reject(xhr);
-      xhr.ontimeout = () => reject(xhr);
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.ontimeout = () => reject(new Error('Request timeout'));
 
-      try {
-        if (method === METHODS.GET || data === undefined) {
-          xhr.send();
-        } else if (data instanceof FormData) {
-          xhr.send(data);
-        } else {
-          xhr.send(JSON.stringify(data));
-        }
-      } catch (err) {
-        reject(err);
+      if (method === METHODS.GET || !data) {
+        xhr.send();
+      } else {
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
       }
     });
   }

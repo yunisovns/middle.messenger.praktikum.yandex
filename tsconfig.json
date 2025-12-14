@@ -24,5 +24,5 @@
     // Добавлено в ручную
     "typeRoots": ["./node_modules/@types", "./@types"]
   },
-  "include": ["src", ".eslintrc.json"]
+  "include": ["src", "eslint.config.js"]
 }
