@@ -1,31 +1,43 @@
-import { Router } from "./router";
-import { renderLoginPage } from "./page/login";
-import { renderRegisterPage } from "./page/register";
-import { renderChatPage } from "./page/chat";
-import { renderMainPage } from "./main/main";
-import { renderError404 } from "./page/error404";
-import { renderError500 } from "./page/error500";
+import Block from './core/Block.ts';
+import Chats from './pages/chats/Chats.ts';
+import Login from './pages/login/Login.ts';
+import Register from './pages/register/Register.ts';
+import Settings from './pages/settings/settings.ts';
+import './styles/styles.css';
 
-const router = new Router("app");
+function mountPageByPath(path: string): void {
+  const app = document.getElementById('app');
+  if (!app) throw new Error('#app not found');
 
-router
-  .use("/login", renderLoginPage)
-  .use("/register", renderRegisterPage)
-  .use("/chat", renderChatPage)
-  .use("/error404", renderError404)
-  .use("/error500", renderError500)
-  .use("/", renderMainPage );
+  // Используем any, так как каждая страница имеет разные типы props
+  // и мы не можем обобщить их до Record<string, unknown> без потери типизации
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let pageInstance: Block<any>;
 
-router.start();
+  if (path === '/register') pageInstance = new Register();
+  else if (path === '/settings') pageInstance = new Settings();
+  else if (path === '/chats' || path === '/') pageInstance = new Chats();
+  else pageInstance = new Login();
 
-// Навигация по клику на ссылки
-document.addEventListener("click", (e) => {
-  const target = e.target as HTMLElement;
-  if (target.tagName === "A" && target.getAttribute("href")) {
-    const href = target.getAttribute("href");
-    if (href && href.startsWith("/")) {
-      e.preventDefault();
-      router.go(href);
-    }
-  }
+  pageInstance.mount('#app');
+
+  // Обработка кликов по ссылкам для навигации без перезагрузки
+  document.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const href = (a as HTMLAnchorElement).getAttribute('href');
+      if (href && href.startsWith('/')) {
+        e.preventDefault();
+        history.pushState({}, '', href);
+        mountPageByPath(href);
+      }
+    });
+  });
+}
+
+// Первоначальная загрузка страницы
+mountPageByPath(window.location.pathname);
+
+// Обработка навигации по истории (кнопки вперед/назад)
+window.addEventListener('popstate', () => {
+  mountPageByPath(window.location.pathname);
 });
